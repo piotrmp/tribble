@@ -9,7 +9,7 @@ MAX_ARTICLES = -1
 
 class ArticleHandler(sax.ContentHandler):
     
-    def __init__(self, origin_wiki, out_path, session):
+    def __init__(self, origin_wiki, out_path, session, titles = None):
         self.title = ''
         self.wikicode = ''
         self.currentTag = ''
@@ -18,6 +18,7 @@ class ArticleHandler(sax.ContentHandler):
         self.session = session
         self.count = 0
         self.finished = False
+        self.titles = titles
         self.file = open(out_path, 'w')
     
     def startElement(self, tag, attributes):
@@ -42,9 +43,17 @@ class ArticleHandler(sax.ContentHandler):
     def parsePage(self, title, wikicode):
         if self.finished:
             return
-        linked_destination = check_link(title, self.origin_wiki, self.session)
-        if not linked_destination:
-            return
+        if self.titles is not None:
+            # List of titles provided, check if included
+            if title not in self.titles:
+                return
+            else:
+                linked_destination = self.titles[title]
+        else:
+            # List of titles not provided, check if linked to the destination Wiki
+            linked_destination = check_link(title, self.origin_wiki, self.session)
+            if not linked_destination:
+                return
         parsed_wikicode = mwparserfromhell.parse(wikicode)
         text_content = parsed_wikicode.strip_code()
         normalized_text_content = self.normalize(text_content)

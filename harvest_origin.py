@@ -1,4 +1,4 @@
-import sys, pathlib
+import pathlib
 import xml.sax as sax
 
 import requests_cache
