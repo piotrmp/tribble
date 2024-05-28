@@ -14,7 +14,9 @@ for line in open(input_file):
     document = lambo.segment(text)
     for turn in document.turns:
         for sentence in turn.sentences:
-            handle.write(parts[0]+'\t'+parts[1]+'\t'+sentence.text.strip().replace('\t','\\t').replace('\n','\\n')+'\n')
+            sentence_text = sentence.text.strip()
+            if len(sentence_text)>20:
+                handle.write(parts[0]+'\t'+parts[1]+'\t'+sentence_text.replace('\t','\\t').replace('\n','\\n')+'\n')
     #break
 
 handle.close()
