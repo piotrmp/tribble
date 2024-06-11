@@ -4,7 +4,7 @@ import re
 _RE_COMBINE_WHITESPACE = re.compile(r"\s+")
 
 source = 'es'
-destination = 'an'
+destination = 'ast'
 
 destination_sentence_path = pathlib.Path.home() / 'data' / 'tribble' / 'segmented' / (
         destination + '_text_sentences.tsv.gz')
@@ -13,9 +13,6 @@ source_translated_sentence_path = pathlib.Path.home() / 'data' / 'tribble' / 'tr
         source + '_translated_' + destination + '.tsv.gz')
 
 output_path = pathlib.Path.home() / 'data' / 'tribble' / 'parallel' / (source + '2' + destination + '.tsv')
-
-sentences_source = ['abc', '123', 'abc123']
-sentences_destination = ['abac', '1223', 'abcabc123']
 
 
 def normalise_for_lev(string):
@@ -31,7 +28,7 @@ def align_sentences_greedy(sentences1, sentences2, originals1, originals2):
             if len(normalised1) == 0 and len(normalised2) == 0:
                 continue
             lev_score = 1.0 - editdistance.eval(normalised1, normalised2) / max(len(normalised1), len(normalised2))
-            if lev_score > 0.9:
+            if lev_score > 0.8:
                 xyz = (normalise_for_lev(original1), normalise_for_lev(original2), lev_score)
                 # print(xyz)
                 results.append(xyz)

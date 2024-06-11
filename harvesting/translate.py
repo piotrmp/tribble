@@ -14,7 +14,7 @@ import subprocess
 
 BATCH_SIZE = 128
 source = 'es'
-destination = 'an'
+destination = 'oc'
 source_sentence_path = pathlib.Path.home() / 'data'/'tribble'/'segmented'/(source+'_text_sentences.tsv.gz')
 destination_sentence_path = pathlib.Path.home() / 'data'/'tribble'/'translated'/(source+'_translated_'+destination+'.tsv')
 
