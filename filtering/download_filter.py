@@ -21,7 +21,7 @@ def get_available_corpora(source, target):
     filtered_corpora = [
         corpus['corpus'] for corpus in data['corpora']
         if (corpus['source'] == source and corpus['target'] == target) or (
-                    corpus['source'] == target and corpus['target'] == source) and corpus['source_tokens'] and corpus[
+                corpus['source'] == target and corpus['target'] == source) and corpus['source_tokens'] and corpus[
                'target_tokens']
     ]
     return filtered_corpora
@@ -31,12 +31,12 @@ def is_ok(src_line, trg_line, src_translated_line):
     text1 = src_translated_line.replace(' ', '')
     text2 = trg_line.strip().replace(' ', '')
     if len(text1) == 0 or len(text2) == 0:
-        return (False,0.0)
+        return (False, 0.0)
     lev_score = 1.0 - editdistance.eval(text1, text2) / max(len(text1), len(text2))
     if lev_score > 0.8:
-        return (True,lev_score)
+        return (True, lev_score)
     else:
-        return (False,lev_score)
+        return (False, lev_score)
 
 
 def create_parallel_tsv(directory, source, target, output_file):
@@ -78,21 +78,21 @@ def create_parallel_tsv(directory, source, target, output_file):
             check = is_ok(src_line, trg_line, src_translated_line)
             tsv_writer.writerow([src_line.strip(), trg_line.strip(), str(check[1])])
             if check[0]:
-                ok_lines+=1
+                ok_lines += 1
             else:
-                nok_lines+=1
+                nok_lines += 1
     
-    print("OK lines: "+str(ok_lines)+" out of "+str(ok_lines+nok_lines))
+    print("OK lines: " + str(ok_lines) + " out of " + str(ok_lines + nok_lines))
     print(f"Parallel TSV file '{output_file}' has been created.")
 
 
 source_lang = 'es'
-for target_lang in ['an','oc','ast']:
+for target_lang in ['an', 'oc', 'ast']:
     print("TARGET: " + target_lang)
     available_corpora = get_available_corpora(source_lang, target_lang)
     print(available_corpora)
     
     for corpus in available_corpora:
-        print("CORPUS: "+corpus)
-        file_path = out_path / (source_lang + '-' + target_lang + '_'+corpus+'_filtered.tsv')
+        print("CORPUS: " + corpus)
+        file_path = out_path / (source_lang + '-' + target_lang + '_' + corpus + '_filtered.tsv')
         create_parallel_tsv(corpus, source_lang, target_lang, str(file_path))
