@@ -5,7 +5,7 @@ from opustools import OpusRead
 import csv
 import pathlib
 
-from harvesting.translator import translate
+from harvesting.translator import translate, translate_big
 
 out_path = pathlib.Path.home() / 'data' / 'tribble' / 'filtered'
 
@@ -62,7 +62,7 @@ def create_parallel_tsv(directory, source, target, output_file):
     with open(f'{source}-{target}.src', 'r', encoding='utf-8') as src_file:
         for src_line in src_file:
             to_translate.append(src_line.strip())
-    src_translated = translate(to_translate, source, target)
+    src_translated = translate_big(to_translate, source, target)
     
     # Combine the source and target files into a single TSV
     ok_lines = 0

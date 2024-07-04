@@ -1,6 +1,12 @@
 import subprocess
 
-
+def translate_big(sentences, src, dst):
+    n=100
+    result = []
+    for sentence_batch in [sentences[i:i + n] for i in range(0, len(sentences), n)]:
+        result.extend(translate(sentence_batch,src,dst))
+    return result
+    
 def translate(sentences, src, dst):
     if src == 'es' and dst == 'an':
         model = 'spa-arg'
