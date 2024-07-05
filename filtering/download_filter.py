@@ -93,7 +93,8 @@ for target_lang in ['an', 'oc', 'ast']:
     print(available_corpora)
     for corpus in available_corpora:
         print("CORPUS: " + corpus)
-        if target_lang == 'oc' and corpus in ['CCMatrix','KDE4','NLLB']:
+        if (target_lang == 'oc' and corpus in ['CCMatrix', 'KDE4', 'NLLB']) or (
+                target_lang == 'ast' and corpus in ['CCMatrix']):
             # Causing error in OPUS reader
             print("BLACKLISTED, SKIPPING")
             continue
