@@ -91,8 +91,14 @@ for target_lang in ['an', 'oc', 'ast']:
     print("TARGET: " + target_lang)
     available_corpora = get_available_corpora(source_lang, target_lang)
     print(available_corpora)
-    
     for corpus in available_corpora:
         print("CORPUS: " + corpus)
+        if target_lang == 'oc' and corpus == 'CCMatrix':
+            # Causing error in OPUS reader
+            print("BLACKLISTED, SKIPPING")
+            continue
         file_path = out_path / (source_lang + '-' + target_lang + '_' + corpus + '_filtered.tsv')
+        if file_path.exists():
+            print("DONE, SKIPPING")
+            continue
         create_parallel_tsv(corpus, source_lang, target_lang, str(file_path))
