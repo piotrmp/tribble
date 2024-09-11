@@ -62,3 +62,4 @@ __pycache__/
 cache/
 results/
 wandb/
+data/submission

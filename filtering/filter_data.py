@@ -11,31 +11,31 @@ directory = '../data/processed/formatted'
 tqdm.pandas()
 
 for filename in os.listdir(directory):
-    if 'cat_arn' in filename or 'csv' not in filename or 'oc' not in filename:
-        continue
-    print(filename)
-    # df = pd.read_csv(os.path.join(directory, filename), encoding='utf-8', sep=',')
-    #
-    # # Normalize
-    # df['src_text'] = df['src_text'].progress_apply(lambda x: normalize(x))
-    # df['tgt_text'] = df['tgt_text'].progress_apply(lambda x: normalize(x))
-    #
-    # # Compute length stats
-    # df['src_len'] = df['src_text'].progress_apply(lambda x: compute_length(x, 1.0))
-    # df['tgt_len'] = df['tgt_text'].progress_apply(lambda x: compute_length(x, 1.0))
-    # df['len_ratio'] = df.progress_apply(lambda row: compute_ratio(row['src_len'], row['tgt_len']), axis=1)
-    # df['unique_ratio'] = df['src_text'].progress_apply(lambda x: compute_unique_ratio(str(x), 1.0))
-    #
-    # # Compute lang detect
-    # df['src_ic'] = df['src_text'].progress_apply(lambda x: idiomata_cognitor_predict(x)[0])
-    # df['tgt_ic'] = df['tgt_text'].progress_apply(lambda x: idiomata_cognitor_predict(x)[0])
-    # df['src_ft'] = df['src_text'].progress_apply(lambda x: fasttext_predict(x)[0])
-    # df['tgt_ft'] = df['tgt_text'].progress_apply(lambda x: fasttext_predict(x)[0])
+    # if 'cat_arn' in filename or 'csv' not in filename or 'oc' not in filename:
+    #     continue
+    tqdm.write(filename)
+    df = pd.read_csv(os.path.join(directory, filename), encoding='utf-8', sep=',')
+
+    # Normalize
+    df['src_text'] = df['src_text'].progress_apply(lambda x: normalize(x))
+    df['tgt_text'] = df['tgt_text'].progress_apply(lambda x: normalize(x))
+
+    # Compute length stats
+    df['src_len'] = df['src_text'].progress_apply(lambda x: compute_length(x, 1.0))
+    df['tgt_len'] = df['tgt_text'].progress_apply(lambda x: compute_length(x, 1.0))
+    df['len_ratio'] = df.progress_apply(lambda row: compute_ratio(row['src_len'], row['tgt_len']), axis=1)
+    df['unique_ratio'] = df['src_text'].progress_apply(lambda x: compute_unique_ratio(str(x), 1.0))
+
+    # Compute lang detect
+    df['src_ic'] = df['src_text'].progress_apply(lambda x: idiomata_cognitor_predict(x)[0])
+    df['tgt_ic'] = df['tgt_text'].progress_apply(lambda x: idiomata_cognitor_predict(x)[0])
+    df['src_ft'] = df['src_text'].progress_apply(lambda x: fasttext_predict(x)[0])
+    df['tgt_ft'] = df['tgt_text'].progress_apply(lambda x: fasttext_predict(x)[0])
     df = pd.read_csv('../data/processed/stats/stats_es_oc.csv', encoding='utf-8', sep=',')
     df = df.dropna()
 
-    # tqdm.write("\nSAVING STATISTICS ABOUT FULL")
-    # df.to_csv(os.path.join('../data/processed/stats', f"stats_{filename.split('.')[0]}.csv"), index=False)
+    tqdm.write("\nSAVING STATISTICS ABOUT FULL")
+    df.to_csv(os.path.join('../data/processed/stats', f"stats_{filename.split('.')[0]}.csv"), index=False)
 
     tqdm.write("\nBEGIN FILTERING")
     tqdm.write(f"{filename} length before length filtering: {len(df)}")
