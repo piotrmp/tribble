@@ -1,6 +1,6 @@
 from datasets import load_dataset, DatasetDict
 from transformers import (
-    AutoTokenizer,
+    NllbTokenizer,
     AutoModelForSeq2SeqLM,
     Seq2SeqTrainingArguments,
     Seq2SeqTrainer,
@@ -27,6 +27,7 @@ import logging
 
 logging.getLogger('apscheduler.executors.default').propagate = False
 
+
 @dataclass
 class ModelConfig:
     model_name_or_path: str = field(default="facebook/nllb-200-distilled-600M")
@@ -35,13 +36,15 @@ class ModelConfig:
     lora_alpha: int = field(default=32)
     lora_dropout: float = field(default=0.05)
     lora_task_type: TaskType = field(default=TaskType.SEQ_2_SEQ_LM)
-    lora_target_modules: Optional[List[str]] =field(default_factory=lambda: ['k_proj','v_proj','q_proj', 'out_proj'])
+    lora_target_modules: Optional[List[str]] = field(default_factory=lambda: ['k_proj', 'v_proj', 'q_proj', 'out_proj'])
     lora_modules_to_save: Optional[List[str]] = field(default=None)
+
 
 @dataclass
 class DataArguments:
     dataset_name: Optional[str] = field(default=None)
     wandb_project: Optional[str] = field(default="nllb-finetuning")
+
 
 def get_peft_config(model_config: ModelConfig):
     return LoraConfig(
@@ -54,18 +57,22 @@ def get_peft_config(model_config: ModelConfig):
         # target_modules=model_config.lora_target_modules,
         modules_to_save=model_config.lora_modules_to_save,
     )
+
+
 def translate(model, tokenizer, text, src_lang, tgt_lang, a=32, b=3, max_input_length=1024, num_beams=4, **kwargs):
     tokenizer.src_lang = src_lang
     tokenizer.tgt_lang = tgt_lang
     inputs = tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=max_input_length)
     result = model.generate(
         **inputs.to(model.device),
-        forced_bos_token_id=tokenizer.lang_code_to_id[tgt_lang],
+        forced_bos_token_id=tokenizer.convert_tokens_to_ids([tgt_lang])[0],
         max_new_tokens=int(a + b * inputs.input_ids.shape[1]),
         num_beams=num_beams,
         **kwargs
     )
     return tokenizer.batch_decode(result, skip_special_tokens=True)
+
+
 def tokenize_function(example, tokenizer, model_args):
     src_lang = example["src_lang"]
     tgt_lang = example["tgt_lang"]
@@ -80,6 +87,7 @@ def tokenize_function(example, tokenizer, model_args):
     model_inputs["src_lang"] = src_lang
     model_inputs["tgt_lang"] = tgt_lang
     return model_inputs
+
 
 def compute_metrics(eval_preds, tokenizer):
     bleu_calc = sacrebleu.metrics.BLEU()
@@ -101,6 +109,7 @@ def compute_metrics(eval_preds, tokenizer):
         "chrf++": chrf_score.score
     }
 
+
 def main():
     parser = HfArgumentParser((ModelConfig, DataArguments, Seq2SeqTrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
@@ -109,18 +118,18 @@ def main():
 
     os.makedirs("./emissions", exist_ok=True)
 
-    tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path)
+    tokenizer = NllbTokenizer.from_pretrained(model_args.model_name_or_path)
     model = AutoModelForSeq2SeqLM.from_pretrained(model_args.model_name_or_path)
     print(model)
     if model_args.use_peft:
         peft_config = get_peft_config(model_args)
         model = get_peft_model(model, peft_config)
 
-    model.print_trainable_parameters()
+        model.print_trainable_parameters()
 
     if torch.backends.mps.is_built():
         device = torch.device("mps")
-    # device = torch.device('cpu')
+        # device = torch.device('cpu')
         model = model.to(device)
 
     # dataset = load_dataset("wmt16", "ro-en")
@@ -156,7 +165,8 @@ def main():
         weight_decay=1e-3,
     )
 
-    num_train_steps = (len(tokenized_datasets["train"]) // training_args.per_device_train_batch_size) * training_args.num_train_epochs
+    num_train_steps = (len(
+        tokenized_datasets["train"]) // training_args.per_device_train_batch_size) * training_args.num_train_epochs
     warmup_steps = int(0.1 * num_train_steps)
     scheduler = get_constant_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps)
 
@@ -176,7 +186,6 @@ def main():
     tracker.start()
 
     trainer.train()
-
 
     # Identify actual language pairs in the dataset
     lang_pairs = test_df[['src_lang', 'tgt_lang']].drop_duplicates().values.tolist()
@@ -222,6 +231,7 @@ def main():
         })
 
     wandb.finish()
+
 
 if __name__ == "__main__":
     main()
